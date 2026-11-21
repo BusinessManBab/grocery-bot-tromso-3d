@@ -2,6 +2,8 @@
 // OSM landmarks (https://www.openstreetmap.org/copyright, ODbL).
 export const MAP_LABELS = [
   ["Tromsøya", 1892800, 6965150, 1.0],
+  ["Tromsdalen", 1900000, 6964900, 1.3],
+  ["Kvaløya", 1887200, 6964700, 1.3],
   ["Tromsøysundet", 1896350, 6964400, 1.25, "river"],
   ["Storgata", 1895750, 6964930, 1.5],
   ["Tromsø domkirke", 1895650, 6964850, 1.7],
@@ -13,4 +15,6 @@ export const MAP_LABELS = [
   ["Folkeparken", 1892300, 6963200, 1.8],
   ["Telegrafbukta", 1893000, 6962800, 1.7],
   ["Alfheim", 1894500, 6964700, 2.0],
+  ["Tromsøbrua", 1898300, 6965000, 1.6],
+  ["Ishavskatedralen", 1898710, 6964810, 1.8],
 ];
