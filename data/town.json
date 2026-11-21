@@ -1,0 +1,196 @@
+{
+  "id": "tromso",
+  "name": "Tromsø",
+  "country": "Norway",
+  "map": "map.json",
+  "world": "world.json",
+  "map_id": "tromso-bot-v2",
+  "camera": {
+    "center": [18.936, 69.6465],
+    "zoom": 13.75
+  },
+  "max_bounds": [
+    [18.58, 69.515],
+    [19.29, 69.78]
+  ],
+  "terrain_bounds": [18.55, 69.49, 19.32, 69.81],
+  "terrain_exaggeration": 1.2,
+  "play_area": {
+    "polygon": [
+      [18.893, 69.666],
+      [18.978, 69.666],
+      [18.976, 69.6585],
+      [18.97, 69.6562],
+      [18.96462, 69.6556],
+      [18.96462, 69.6531],
+      [18.97, 69.6505],
+      [18.972, 69.645],
+      [18.965, 69.64],
+      [18.957, 69.635],
+      [18.948, 69.63],
+      [18.94, 69.625],
+      [18.92, 69.623],
+      [18.893, 69.628]
+    ]
+  },
+  "viewpoints": {
+    "bridge": {
+      "center": [18.9752, 69.6518],
+      "zoom": 16,
+      "bearing": -35
+    },
+    "hills": {
+      "center": [18.925, 69.648],
+      "zoom": 13.6,
+      "bearing": 110
+    }
+  },
+  "bridges": [
+    {
+      "id": "38705387",
+      "name": "Tromsøbrua",
+      "coordinates": [
+        [18.9858701, 69.6488093],
+        [18.9857876, 69.6489141],
+        [18.9856987, 69.6490109],
+        [18.9855937, 69.6491064],
+        [18.9854713, 69.6492014],
+        [18.9853221, 69.649307],
+        [18.9851795, 69.6493986],
+        [18.9850129, 69.6494894],
+        [18.984846, 69.6495733],
+        [18.9846484, 69.649667],
+        [18.9844028, 69.64976],
+        [18.9841722, 69.6498441],
+        [18.9839236, 69.6499247],
+        [18.9836934, 69.6499945],
+        [18.9833996, 69.6500684],
+        [18.9830165, 69.6501595],
+        [18.9822764, 69.6503265],
+        [18.979561, 69.6509353],
+        [18.9777551, 69.6513402],
+        [18.9732916, 69.652341],
+        [18.9695751, 69.6531754],
+        [18.967004, 69.6537512],
+        [18.9650036, 69.6542013],
+        [18.9646659, 69.6542773],
+        [18.9645233, 69.6543084]
+      ]
+    }
+  ],
+  "incident": {
+    "id": "closure-1",
+    "way_ids": [
+      "24664635",
+      "369768302",
+      "39128776"
+    ],
+    "road": "Kirkegårdsvegen",
+    "label": "Kirkegårdsvegen — accident"
+  },
+  "calibration": {},
+  "calibration_notes": "",
+  "daylight": {
+    "dawn": "05:30",
+    "sunrise": "06:50",
+    "golden": "17:45",
+    "sunset": "20:00",
+    "dusk": "21:00",
+    "night": "21:50"
+  },
+  "rush_hours": [
+    [
+      "07:00",
+      "09:00"
+    ],
+    [
+      "15:00",
+      "17:00"
+    ]
+  ],
+  "texts": {},
+  "game_map": {
+    "osm_bounds": [18.885, 69.6215, 18.995, 69.671],
+    "labels": [],
+    "notes": "Flat map for the /game page (tools/build-town-game-map.py). Labels: names and positions from OpenStreetMap (ODbL, © OpenStreetMap contributors)."
+  },
+  "build": {
+    "road_bounds": [18.88, 69.622, 18.985, 69.672],
+    "first_shop": {
+      "address": "Paul Figenschous veg 5B",
+      "coordinates": [18.9415382, 69.6489253]
+    },
+    "area": [
+      [18.893, 69.666],
+      [18.978, 69.666],
+      [18.976, 69.6585],
+      [18.97, 69.6562],
+      [18.96462, 69.6556],
+      [18.96462, 69.6531],
+      [18.97, 69.6505],
+      [18.972, 69.645],
+      [18.965, 69.64],
+      [18.957, 69.635],
+      [18.948, 69.63],
+      [18.94, 69.625],
+      [18.92, 69.623],
+      [18.893, 69.628]
+    ],
+    "exclude_tunnels": true,
+    "exclude_highways": [
+      "service"
+    ],
+    "crossings": "auto",
+    "shops": [
+      {
+        "address": "Paul Figenschous veg 5B",
+        "coordinates": [18.9415382, 69.6489253]
+      },
+      {
+        "address": "Nansenvegen 53B",
+        "coordinates": [18.9142826, 69.6388457]
+      },
+      {
+        "address": "Dramsvegen 65",
+        "coordinates": [18.9602548, 69.6591852]
+      },
+      {
+        "address": "Stalheimvegen 12",
+        "coordinates": [18.928706, 69.6585293]
+      },
+      {
+        "address": "Hjalmar Johansens gate 203",
+        "coordinates": [18.9395486, 69.640148]
+      },
+      {
+        "address": "Hansmarkvegen 38C",
+        "coordinates": [18.9179675, 69.647259]
+      },
+      {
+        "address": "Havnegata 1D",
+        "coordinates": [18.9608002, 69.6518538]
+      },
+      {
+        "address": "Holtvegen 61",
+        "coordinates": [18.9157381, 69.653043]
+      },
+      {
+        "address": "M Urdals veg 27",
+        "coordinates": [18.9452979, 69.657492]
+      },
+      {
+        "address": "Frihetsvegen 5",
+        "coordinates": [18.9266841, 69.6428534]
+      }
+    ],
+    "max_customers": 88,
+    "graph_id": "tromso-bot-v1",
+    "map_id": "tromso-bot-v2",
+    "limitations": []
+  },
+  "sources": {
+    "roads": "OpenStreetMap via Overpass API (ODbL, © OpenStreetMap contributors), fetched once 2026-11-20",
+    "addresses": "Kartverket address register via Geonorge (CC BY 4.0), fetched once 2026-11-20",
+    "routing": "OSRM public demo server, collected once offline (calibration only)"
+  }
+}
