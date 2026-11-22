@@ -446,3 +446,13 @@ the browser console, `groceryView.world3d.flowAt(x, z)` returns `[dx, dz, speed]
   on the page.
 - Elevation: Mapzen Terrarium tiles on AWS Open Data.
 - Delivery homes, shops and the replay: the Grocery Bot game data for that town.
+
+## Landmarks and fast loading (engine kit)
+
+The 3D view now runs on the shared engine from the Kongsberg map (Oslo's loading strategy): bake `data/buildings.bin` (`tools/bake_buildings.mjs`) and `data/trees.bin` (`tools/bake_trees.cjs`, needs Chromium) instead of building everything in the browser. Each town gets 2-4 of its trademark buildings or places, listed in `tools/landmarks.spec.json` and baked by `tools/bake_landmarks.mjs` into `data/landmarks.json` + `data/places.json` (the explore menu):
+
+1. Find candidates inside the map's bounds: OSM features with a `wikidata` tag (`nwr[wikidata][!highway][!place](S,W,N,E)`) plus the town's own tourism pages. Check shape, colours, materials and heights in reliable sources (Wikipedia, Store norske leksikon, the UiT architecture guide, Riksantikvaren) and look at photos; do not invent details.
+2. Prefer the real OSM outline (`"osm": "r123"` / `"w123"`, cached in `.cache/`): it also removes the background buildings it replaces.
+3. Generic models: `church`, `outline`, `rapids`. Signature shapes get their own function in `MODELS` in `src/landmarks.js` (Tromsø: `arcticCathedral`, `polaria`, `bridge`), built on the site's measured frame (`frameOf(site)`: u along the longest outline edge, v across). Keep faces facing out (`orient()`), keep details at least 0.25 m off any wall, and keep everything in the shared buckets: a handful of draw calls and well under 30k triangles for all landmarks.
+4. A landmark that changes where roads run (a long bridge) can hand its deck to `src/view3d.js`, as Tromsøbrua does with `bridgeDeck()`, so roads and trucks follow it.
+5. Order: landmarks, buildings, trees. Then check every landmark close up from two angles on the GPU box, and compare flicker with the previous version.

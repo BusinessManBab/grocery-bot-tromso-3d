@@ -3,6 +3,7 @@
     python3 tools/build_city.py buildings --map data/game-map.json [--osm cache.json]
     python3 tools/build_city.py terrain   --map data/game-map.json [--tiles dir] [--step 8]
     python3 tools/build_city.py replay    --game game.json [--names "A,B,C"]
+    python3 tools/build_city.py landcover --map data/game-map.json [--osm cache.json]
 
 All coordinates are [lon, lat] * 1e5 integers, like game-map.json. Outputs go to --out (default data/).
 
@@ -10,6 +11,8 @@ buildings  OSM building footprints in the map bounds (one Overpass query, cached
            matched to every delivery address in game-map.json "homes" -> data/buildings.json
 terrain    Terrarium elevation tiles (AWS Open Data, no key) sampled to a grid over the bounds
            -> data/terrain.bin (Uint16 decimetres above the lowest point) + data/terrain.json
+landcover  OSM forest/wood (trees) and fields, meadows, residential, industrial... (no trees) in the
+           bounds -> data/landcover.json, which the 3D view uses to plant forests
 replay     a finished game from /api/games/CODE?since=0 -> data/game.json, player names replaced
 
 Needs Python 3.9+; terrain also needs Pillow (pip install pillow).
@@ -53,6 +56,11 @@ def height(tags):
         except ValueError:
             pass
     return HEIGHTS.get(tags.get('building'), 6)
+
+
+def info(tags):
+    """What the 3D view needs to style a building like the real one."""
+    return [tags.get('building', 'yes'), tags.get('roof:shape', ''), tags.get('building:colour', ''), tags.get('roof:colour', '')]
 
 
 def inside(pt, ring):
@@ -115,7 +123,8 @@ def buildings(args):
         cx = sum(p[0] for p in ring) / len(ring)
         cy = sum(p[1] for p in ring) / len(ring)
         if x0 <= cx <= x1 and y0 <= cy <= y1:
-            blds.append({'ring': ring, 'h': height(e.get('tags', {})), 'c': (cx, cy)})
+            tags = e.get('tags', {})
+            blds.append({'ring': ring, 'h': height(tags), 'c': (cx, cy), 'info': info(tags)})
     homes, used = [], set()
     for h in town['homes']:
         near = [i for i, b in enumerate(blds) if abs(b['c'][0] - h[0]) < 120 and abs(b['c'][1] - h[1]) < 70]
@@ -126,18 +135,86 @@ def buildings(args):
                 hit = i
         if hit is not None and hit not in used:
             used.add(hit)
-            homes.append({'p': h, 'ring': blds[hit]['ring'], 'h': min(blds[hit]['h'], 14)})
+            homes.append({'p': h, 'ring': blds[hit]['ring'], 'h': min(blds[hit]['h'], 14), 'info': blds[hit]['info']})
         else:   # no mapped footprint: a 10 x 9 m house at the address
             hx, hy = 5 / 1.11 / sq, 4.5 / 1.11
-            homes.append({'p': h, 'h': 7, 'generic': True, 'ring': [(round(h[0] - hx), round(h[1] - hy)), (round(h[0] + hx), round(h[1] - hy)),
+            homes.append({'p': h, 'h': 7, 'generic': True, 'info': ['house', '', '', ''], 'ring': [(round(h[0] - hx), round(h[1] - hy)), (round(h[0] + hx), round(h[1] - hy)),
                                                                    (round(h[0] + hx), round(h[1] + hy)), (round(h[0] - hx), round(h[1] + hy))]})
     flat = lambda ring: [c for p in ring for c in p]
     save(os.path.join(args.out, 'buildings.json'), {
         'attribution': 'Buildings: OpenStreetMap contributors (ODbL)',
-        'homes': [{'p': h['p'], 'h': round(h['h']), 'ring': flat(h['ring'])} for h in homes],
-        'buildings': [[round(b['h'])] + flat(b['ring']) for i, b in enumerate(blds) if i not in used]})
+        'homes': [{'p': h['p'], 'h': round(h['h']), 'ring': flat(h['ring']), 'info': h['info']} for h in homes],
+        'buildings': [[round(b['h'])] + flat(b['ring']) for i, b in enumerate(blds) if i not in used],
+        # parallel to buildings: [OSM building type, roof:shape, building:colour, roof:colour] ('' when not mapped)
+        'info': [b['info'] for i, b in enumerate(blds) if i not in used]})
     matched = sum(1 for h in homes if not h.get('generic'))
     print(f"{len(blds)} buildings; {matched} of {len(homes)} homes matched to a real footprint")
+
+
+# ---- landcover ----------------------------------------------------------------------------
+WOOD = {'forest', 'wood', 'scrub'}
+OPEN = {'farmland', 'meadow', 'grass', 'residential', 'industrial', 'commercial', 'retail', 'cemetery', 'allotments', 'orchard',
+        'construction', 'railway', 'heath', 'grassland', 'bare_rock', 'wetland'}
+
+
+def rings_of(element):
+    if element['type'] == 'way':
+        return [[(round(p['lon'] * 1e5), round(p['lat'] * 1e5)) for p in element.get('geometry', [])]]
+    parts = [[(round(p['lon'] * 1e5), round(p['lat'] * 1e5)) for p in m['geometry']] for m in element.get('members', []) if m.get('role') == 'outer' and m.get('geometry')]
+    out = []
+    while parts:
+        ring = parts.pop()
+        grown = True
+        while ring[0] != ring[-1] and grown:
+            grown = False
+            for i, part in enumerate(parts):
+                if part[0] == ring[-1]:
+                    ring += part[1:]
+                elif part[-1] == ring[-1]:
+                    ring += part[-2::-1]
+                else:
+                    continue
+                parts.pop(i)
+                grown = True
+                break
+        out.append(ring)
+    return out
+
+
+def thin(ring, step=4):
+    """Drop points closer than `step` (about 4 m) to the last kept one."""
+    kept = [ring[0]]
+    for p in ring[1:]:
+        if abs(p[0] - kept[-1][0]) + abs(p[1] - kept[-1][1]) >= step:
+            kept.append(p)
+    return kept
+
+
+def landcover(args):
+    town = load(args.map)
+    x0, y0, x1, y1 = town['bounds']
+    if args.osm and os.path.exists(args.osm):
+        osm = load(args.osm)
+    else:
+        box = f"{y0 / 1e5},{x0 / 1e5},{y1 / 1e5},{x1 / 1e5}"
+        kinds = '|'.join(sorted(WOOD | OPEN))
+        osm = overpass(f'[out:json][timeout:120];(way["landuse"~"^({kinds})$"]({box});way["natural"~"^({kinds})$"]({box});'
+                       f'relation["landuse"~"^({kinds})$"]({box});relation["natural"~"^({kinds})$"]({box}););out geom;')
+        if args.osm:
+            save(args.osm, osm)
+    out = {'attribution': 'Land cover: OpenStreetMap contributors (ODbL)', 'wood': [], 'open': []}
+    for e in osm['elements']:
+        tags = e.get('tags', {})
+        kind = tags.get('landuse') or tags.get('natural')
+        target = 'wood' if kind in WOOD else 'open' if kind in OPEN else None
+        if not target:
+            continue
+        for ring in rings_of(e):
+            ring = thin(ring)
+            if len(ring) >= 4:
+                out[target].append([c for p in ring for c in p])
+    save(os.path.join(args.out, 'landcover.json'), out)
+    print(f"{len(out['wood'])} wooded areas, {len(out['open'])} open areas (fields, meadows, built-up land)")
 
 
 # ---- terrain ----------------------------------------------------------------------------
@@ -200,7 +277,7 @@ def replay(args):
 
 def main():
     parser = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
-    parser.add_argument('step_name', choices=['buildings', 'terrain', 'replay'])
+    parser.add_argument('step_name', choices=['buildings', 'terrain', 'replay', 'landcover'])
     parser.add_argument('--map', default='data/game-map.json')
     parser.add_argument('--game')
     parser.add_argument('--names', help='comma-separated names, in seat order')
@@ -209,7 +286,7 @@ def main():
     parser.add_argument('--step', type=float, default=8, help='terrain grid spacing in map units (~1.1 m each)')
     parser.add_argument('--out', default='data')
     args = parser.parse_args()
-    {'buildings': buildings, 'terrain': terrain, 'replay': replay}[args.step_name](args)
+    {'buildings': buildings, 'terrain': terrain, 'replay': replay, 'landcover': landcover}[args.step_name](args)
 
 
 if __name__ == '__main__':

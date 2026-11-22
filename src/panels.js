@@ -2,7 +2,7 @@
 // order card (left: what a clicked order is, how long ago, how happy). Both read data/shop.json
 // and data/shop.bin, recorded from the engine alongside the public feed (tools/simulate_match.py).
 import { botSvg } from './looks.js';
-import { createIsoShop } from './shop-iso.js?v=16';
+import { createIsoShop } from './shop-iso.js?v=30';
 
 const $ = id => document.getElementById(id);
 const clamp = (v, a, b) => Math.min(b, Math.max(a, v));
@@ -20,7 +20,7 @@ const STATUS = {
   expired: 'Expired: no shop claimed it in time', undelivered: 'Not delivered before the day ended',
 };
 
-export async function createPanels({ game, play, you }) {
+export async function createPanels({ game, play, you, autoOpen = true }) {
   const [data, bin] = await Promise.all([
     fetch('data/shop.json').then(res => res.ok ? res.json() : null),
     fetch('data/shop.bin').then(res => res.ok ? res.arrayBuffer() : null),
@@ -243,6 +243,6 @@ export async function createPanels({ game, play, you }) {
     if (state.order && Math.floor(head * 4) !== state.cardTick) { state.cardTick = Math.floor(head * 4); drawOrder(head); }
   }
 
-  if (state.seat !== null) showShop(state.seat);
+  if (state.seat !== null && autoOpen) showShop(state.seat);
   return { showShop, closeShop, showOrder, closeOrder, update, get selectedOrder() { return state.order; }, get seat() { return state.open ? state.seat : null; } };
 }

@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="theme-color" content="#c8102e">
 <meta name="robots" content="noindex">
-<meta name="description" content="Tromsø in 2D and 3D: 10 competing AIs, 50 trucks and 88 real delivery addresses on real terrain.">
+<meta name="description" content="Tromsø in 2D and 3D: 10 competing AIs, 50 trucks and 88 real delivery addresses on real terrain, with the Arctic Cathedral and the town's landmarks.">
 <title>Grocery Bot Tromsø Map</title>
 <link rel="icon" href="static/assets/grocery-bot-icon.svg" type="image/svg+xml">
 <link rel="stylesheet" href="static/fonts.css">
@@ -13,15 +13,17 @@
 <link rel="stylesheet" href="static/game.css">
 <link rel="stylesheet" href="static/game-view.css">
 <link rel="stylesheet" href="static/view-toggle.css">
-<link rel="stylesheet" href="static/panels.css?v=16">
+<link rel="stylesheet" href="static/explore.css?v=30">
+<link rel="stylesheet" href="static/panels.css?v=30">
 <script src="static/grocery-bot.js"></script>
 <script type="importmap">
 { "imports": {
-  "three": "https://cdn.jsdelivr.net/npm/three@0.170.0/build/three.module.js",
+  "three": "https://cdn.jsdelivr.net/npm/three@0.170.0/build/three.module.min.js",
   "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.170.0/examples/jsm/"
 } }
 </script>
-<script type="module" src="src/game-view.js?v=16"></script>
+<link rel="modulepreload" href="https://cdn.jsdelivr.net/npm/three@0.170.0/build/three.module.min.js">
+<script type="module" src="src/game-view.js?v=30"></script>
 </head>
 <body class="game-page">
 <canvas class="g-map" id="terrain" aria-hidden="true"></canvas>
@@ -31,7 +33,7 @@
 <header class="g-top">
   <a class="g-brand" href="https://v2.grocerybot.no/" aria-label="Grocery Bot home">
     <span class="g-mark" aria-hidden="true"></span>
-    <span>Grocery Bot Town <small>Tromsø · 10 AI players</small></span>
+    <span>Grocery Bot Town <small>Tromsø</small></span>
   </a>
   <div class="g-status" role="status">
     <span class="g-badge" id="badge">Loading</span>
@@ -64,12 +66,23 @@
 </footer>
 
 <p class="g-key"><span></span> Open order <span></span> Claimed order</p>
+<nav class="g-explore" aria-label="Explore the town">
+  <select id="explore-place" aria-label="Fly to a place in the town">
+    <option value="">Explore</option>
+</select>
+  <button type="button" id="city-overview" title="See the whole city">Full city</button>
+  <button type="button" id="city-home" title="Return to the AI match" aria-label="Return to the AI match">⌂</button>
+  <button type="button" id="zoom-out" aria-label="Zoom out">−</button>
+  <button type="button" id="zoom-in" aria-label="Zoom in">+</button>
+</nav>
+<p class="g-building-mode"><strong id="building-mode-label">Every building resident once built</strong> · complete geometry</p>
 <section class="g-shop" id="shopwin" hidden aria-labelledby="shop-title">
   <header>
     <span class="g-shop-face" id="shop-face" aria-hidden="true"></span>
     <h2 id="shop-title">Your shop</h2>
     <button class="g-x" id="shop-close" type="button" aria-label="Close the shop view">×</button>
   </header>
+  <p class="g-shop-location" id="shop-location" hidden></p>
   <svg class="g-shop-svg" id="shop-svg" role="img" aria-label="Robots picking orders and loading trucks inside the shop"></svg>
   <p class="g-shop-foot" id="shop-foot"></p>
 </section>
