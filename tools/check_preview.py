@@ -1,5 +1,6 @@
 """Check that the Tromsø map, terrain, public feed and shop recording agree."""
 import json
+import struct
 from pathlib import Path
 
 DATA = Path(__file__).resolve().parents[1] / "data"
@@ -31,3 +32,12 @@ assert all(len(frame["p"]) == 10 and all(len(p[4]) == 15 for p in frame["p"]) fo
 print(f"PASS: 10 active AIs, 50 trucks, 88 matching homes, {shop['ticks']} synchronized frames.")
 print("Delivered per AI:", delivered)
 print("Terrain:", relief)
+
+trees = (DATA / "trees.bin").read_bytes()
+size = struct.unpack_from("<I", trees)[0]
+header = json.loads(trees[4:4 + size])
+offset = (4 + size + 3) // 4 * 4
+forest = list(struct.iter_unpack("<hh", trees[offset:offset + header["forest"] * 4]))
+assert header["forest"] <= 22000, "Forest must stay within the rendering budget"
+assert sum(z / 4 > 2200 for x, z in forest) > 100, "Southern corner lost its vegetation"
+print(f"PASS: {len(forest)} forest trees cover the full map, including the southern edge.")

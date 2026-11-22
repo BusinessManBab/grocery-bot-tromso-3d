@@ -1,6 +1,6 @@
 // Preview build of the live /game/CODE page (prototypes/town-rush/game-view.js) with a 3D view added.
 import { MAP_LABELS } from './game-map-labels.js';
-import { forestPath, unpackTrees } from './forest.js?v=30';
+import { forestPath, unpackTrees } from './forest.js?v=31';
 import { COLORS, DEFAULT_LOOK, botSvg, cleanLook, truckSvg } from './looks.js';
 import { createPanels } from './panels.js?v=30';
 
@@ -17,7 +17,7 @@ function grab(url, kind) {
 }
 const firstGame = fetch('data/game.json?v=30').catch(() => null);
 grab('data/game-map.json?v=30', 'json');
-grab('data/trees.bin?v=30', 'arrayBuffer').catch(() => null);
+grab('data/trees.bin?v=31', 'arrayBuffer').catch(() => null);
 let view3dModule = null;
 if (wants3d) {
   view3dModule = import('./view3d.js?v=30');
@@ -631,7 +631,7 @@ window.groceryView = { setMode, play, game, toWorld: (lon, lat) => [wx(lon), wy(
 let trees = { forest: [], parks: [] }, forestReady = null;
 function growForest() {
   if (params.get('forest') === '0') return;
-  forestReady = grab('data/trees.bin?v=30', 'arrayBuffer').then(buffer => {
+  forestReady = grab('data/trees.bin?v=31', 'arrayBuffer').then(buffer => {
     trees = unpackTrees(buffer);
     paths.forest = forestPath(trees.forest);
     mapKey = '';

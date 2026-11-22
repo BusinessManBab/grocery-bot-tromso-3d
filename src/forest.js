@@ -77,7 +77,12 @@ export function plantForest({ town, buildings, cover, shops = [], wx, wy, plaza 
   const rand = () => (seed = (seed * 16807) % 2147483647) / 2147483647;
   const wet = (x, z) => test(water, x, z) || test(water, x + 8, z) || test(water, x - 8, z) || test(water, x, z + 8) || test(water, x, z - 8);
   const spots = [];
-  for (let z = Z0 + FOREST_STEP / 2; z < Z1 && spots.length < FOREST_MAX; z += FOREST_STEP) {
+  // Sample the whole eligible landscape, not just the first northern rows.
+  // A separate deterministic reservoir stream keeps the GPU budget bounded
+  // without changing candidate generation or leaving a bare southern corner.
+  let eligible = 0, sampleSeed = 101;
+  const sample = () => (sampleSeed = (sampleSeed * 16807) % 2147483647) / 2147483647;
+  for (let z = Z0 + FOREST_STEP / 2; z < Z1; z += FOREST_STEP) {
     for (let x = X0 + FOREST_STEP / 2; x < X1; x += FOREST_STEP) {
       const px = x + (rand() - .5) * FOREST_STEP * .9, pz = z + (rand() - .5) * FOREST_STEP * .9;
       if (px < X0 + 3 || px > X1 - 3 || pz < Z0 + 3 || pz > Z1 - 3) continue;
@@ -85,7 +90,13 @@ export function plantForest({ town, buildings, cover, shops = [], wx, wy, plaza 
       const mapped = test(wood, px, pz);
       if (!mapped && (test(near, px, pz) || test(open, px, pz) || test(parks, px, pz))) continue;
       if (rand() > (mapped ? .85 : .7)) continue;
-      spots.push([px, pz, .8 + rand() * .7, rand(), rand() < .78]);
+      const tree = [px, pz, .8 + rand() * .7, rand(), rand() < .78];
+      eligible++;
+      if (spots.length < FOREST_MAX) spots.push(tree);
+      else {
+        const slot = Math.floor(sample() * eligible);
+        if (slot < FOREST_MAX) spots[slot] = tree;
+      }
     }
   }
   return spots;
